@@ -59,7 +59,7 @@ def preprocess_data(filepath):
 
 
 def main():
-	preprocess_data(sys.argv[1])
+	preprocess_data(sys.argv[1].rstrip('/'))
 
 if __name__ == '__main__':
 	main()
