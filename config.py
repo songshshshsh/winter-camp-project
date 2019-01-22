@@ -8,7 +8,7 @@ from __future__ import print_function
 
 import copy
 
-max_nepochs = 12 # Total number of training epochs
+max_nepochs = 100 # Total number of training epochs
                  # (including pre-train and full-train)
 pretrain_nepochs = 10 # Number of pre-train epochs (training as autoencoder)
 display = 500  # Display the training results every N training steps.
@@ -104,7 +104,7 @@ model = {
             'attention_layer_size': 700,
         },
         'max_decoding_length_train': 25,
-        'max_decoding_length_infer': 24,
+        'max_decoding_length_infer': 25,
     },
     'classifier': {
         'kernel_size': [3, 4, 5],
