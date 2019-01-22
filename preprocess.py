@@ -26,7 +26,9 @@ def process_posts(posts, words, stop):
 			# if word not in stop:
 			current_post.append(word)
 			if word not in words:
-				words.add(word)
+				words[word] = 1
+			else:
+				words[word] += 1
 		if len(current_post) != 0 and len(current_post) < 25:
 			post_array.append(' '.join(current_post))
 	return post_array
@@ -49,10 +51,10 @@ def preprocess_data():
 	train_ratio = .7
 	val_ratio = .1
 	test_ratio = .2
-	words = set()
+	words = dict()
 	train_label = np.array([hash_label(data) for data in raw_data['type'][:(int)(tot_data_size * train_ratio)]])
 	train_posts = np.array([process_posts(data, words, stop) for data in raw_data['posts'][:(int)(tot_data_size * train_ratio)]])
-	words_for_val_test = set()
+	words_for_val_test = dict()
 	val_label = np.array([hash_label(data) for data in raw_data['type'][(int)(tot_data_size * train_ratio): (int)(tot_data_size * (train_ratio + val_ratio))]])
 	val_posts = np.array([process_posts(data, words_for_val_test, stop) for data in raw_data['posts'][(int)(tot_data_size * train_ratio): (int)(tot_data_size * (train_ratio + val_ratio))]])
 	test_label = np.array([hash_label(data) for data in raw_data['type'][(int)(tot_data_size * (train_ratio + val_ratio)):]])
@@ -61,8 +63,9 @@ def preprocess_data():
 	save('val', val_label, val_posts)
 	save('test', test_label, test_posts)
 	f = open('vocab', 'w')
-	for word in words:
-		f.write(word + '\n')
+	for word in words.keys():
+		if words[word] > 2:
+			f.write(word + '\n')
 	f.close()
 
 def main():
