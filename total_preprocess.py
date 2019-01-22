@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.utils import shuffle
+import sys
 
 
 def hash_label(label):
@@ -43,22 +44,22 @@ def save(filepath, label, posts):
 	f_text.close()
 
 
-def preprocess_data():
-	raw_data = pd.read_csv('data/mbti_1.csv')
+def preprocess_data(filepath):
+	raw_data = pd.read_csv(filepath + '/mbti_1.csv')
 	raw_data = shuffle(raw_data)
 	tot_data_size = len(raw_data)
 	words = set()
 	label = np.array([data for data in raw_data['type']])
 	posts = np.array([process_posts(data, words) for data in raw_data['posts']])
-	save('data/data', label, posts)
-	f = open('words', 'w')
+	save(filepath + '/all_data', label, posts)
+	f = open(filepath + '/words', 'w')
 	for word in words:
 		f.write(word + '\n')
 	f.close()
 
 
 def main():
-	preprocess_data()
+	preprocess_data(sys.argv[1])
 
 if __name__ == '__main__':
 	main()
