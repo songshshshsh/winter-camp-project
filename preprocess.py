@@ -4,7 +4,7 @@ from sklearn.utils import shuffle
 from nltk.corpus import stopwords
 
 def hash_label(label):
-	t = (label[0] == 'I') * 8 + (label[1] == 'N') * 4 + (label[2] == 'T') * 2 + (label[3] == 'J')
+	t = [(int)(label[0] == 'I')] # (int)(label[1] == 'N'), (int)(label[2] == 'T'), (int)(label[3] == 'J')]
 	return t
 
 def process_posts(posts, words, stop):
@@ -27,7 +27,7 @@ def process_posts(posts, words, stop):
 				current_post.append(word)
 				if word not in words:
 					words.add(word)
-		if len(current_post) != 0:
+		if len(current_post) != 0 and len(current_post) < 25:
 			post_array.append(' '.join(current_post))
 	return post_array
 
@@ -36,7 +36,7 @@ def save(filepath, label, posts):
 	f_text = open(filepath + '.text', 'w')
 	for i in range(len(posts)):
 		for text in posts[i]:
-			f_label.write(str(label[i]) + '\n')
+			f_label.write(' '.join([str(j) for j in label[i]]) + '\n')
 			f_text.write(text + '\n')
 	f_label.close()
 	f_text.close()
