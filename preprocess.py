@@ -23,10 +23,10 @@ def process_posts(posts, words, stop):
 			post = post.replace(replace_word, '')
 		current_post = []
 		for word in post.lower().split():
-			if word not in stop:
-				current_post.append(word)
-				if word not in words:
-					words.add(word)
+			# if word not in stop:
+			current_post.append(word)
+			if word not in words:
+				words.add(word)
 		if len(current_post) != 0:
 			post_array.append(' '.join(current_post))
 	return post_array
@@ -52,7 +52,7 @@ def preprocess_data():
 	words = set()
 	train_label = np.array([hash_label(data) for data in raw_data['type'][:(int)(tot_data_size * train_ratio)]])
 	train_posts = np.array([process_posts(data, words, stop) for data in raw_data['posts'][:(int)(tot_data_size * train_ratio)]])
-	words_for_val_test = words.deepcopy()
+	words_for_val_test = set()
 	val_label = np.array([hash_label(data) for data in raw_data['type'][(int)(tot_data_size * train_ratio): (int)(tot_data_size * (train_ratio + val_ratio))]])
 	val_posts = np.array([process_posts(data, words_for_val_test, stop) for data in raw_data['posts'][(int)(tot_data_size * train_ratio): (int)(tot_data_size * (train_ratio + val_ratio))]])
 	test_label = np.array([hash_label(data) for data in raw_data['type'][(int)(tot_data_size * (train_ratio + val_ratio)):]])
