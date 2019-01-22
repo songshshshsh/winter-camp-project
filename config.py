@@ -31,9 +31,24 @@ train_data = {
             'data_name': ''
         },
         {
-            'files': 'train.labels',
+            'files': 'train.labels0',
             'data_type': 'int',
-            'data_name': 'labels'
+            'data_name': 'labels0'
+        },
+        {
+            'files': 'train.labels1',
+            'data_type': 'int',
+            'data_name': 'labels1'
+        },
+        {
+            'files': 'train.labels2',
+            'data_type': 'int',
+            'data_name': 'labels2'
+        },
+        {
+            'files': 'train.labels3',
+            'data_type': 'int',
+            'data_name': 'labels3'
         }
     ],
     'name': 'train'
@@ -41,11 +56,17 @@ train_data = {
 
 val_data = copy.deepcopy(train_data)
 val_data['datasets'][0]['files'] = 'val.text'
-val_data['datasets'][1]['files'] = 'val.labels'
+val_data['datasets'][1]['files'] = 'val.labels0'
+val_data['datasets'][2]['files'] = 'val.labels1'
+val_data['datasets'][3]['files'] = 'val.labels2'
+val_data['datasets'][4]['files'] = 'val.labels3'
 
 test_data = copy.deepcopy(train_data)
 test_data['datasets'][0]['files'] = 'test.text'
-test_data['datasets'][1]['files'] = 'test.labels'
+test_data['datasets'][1]['files'] = 'test.labels0'
+test_data['datasets'][2]['files'] = 'test.labels1'
+test_data['datasets'][3]['files'] = 'test.labels2'
+test_data['datasets'][4]['files'] = 'test.labels3'
 
 model = {
     'dim_c': 200,

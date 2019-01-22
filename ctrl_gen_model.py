@@ -39,6 +39,36 @@ class CtrlGenModel(object):
         print(inputs)
         self._build_model(inputs, vocab, gamma, lambda_g)
 
+    def _high_level_classifier(self, classifier, clas_embedder, inputs, vocab, gamma, lambda_g, classifier_id, classifier_soft_id, classifier_seq_len):
+        # Classification loss for the classifier
+        print('classifier', classifier_id, classifier_soft_id)
+        clas_logits0, clas_preds0 = classifier(
+            inputs=clas_embedder(ids=classifier_id, soft_ids=classifier_soft_id),
+            sequence_length=classifier_seq_len)
+        clas_logits1, clas_preds1 = classifier(
+            inputs=clas_embedder(ids=classifier_id, soft_ids=classifier_soft_id),
+            sequence_length=classifier_seq_len)
+        clas_logits2, clas_preds2 = classifier(
+            inputs=clas_embedder(ids=classifier_id, soft_ids=classifier_soft_id),
+            sequence_length=classifier_seq_len)
+        clas_logits3, clas_preds3 = classifier(
+            inputs=clas_embedder(ids=classifier_id, soft_ids=classifier_soft_id),
+            sequence_length=classifier_seq_len)
+        clas_logits0 = tf.reshape(clas_logits0, (-1, 1))
+        clas_logits1 = tf.reshape(clas_logits1, (-1, 1))
+        clas_logits2 = tf.reshape(clas_logits2, (-1, 1))
+        clas_logits3 = tf.reshape(clas_logits3, (-1, 1))
+        clas_preds0 = tf.reshape(clas_preds0, (-1, 1))
+        clas_preds1 = tf.reshape(clas_preds1, (-1, 1))
+        clas_preds2 = tf.reshape(clas_preds2, (-1, 1))
+        clas_preds3 = tf.reshape(clas_preds3, (-1, 1))
+        print('clas_logits', clas_logits0, 'clas_preds', clas_preds0)
+        clas_logits = tf.concat([clas_logits0, clas_logits1, clas_logits2, clas_logits3], axis = 1)
+        clas_preds = tf.concat([clas_preds0, clas_preds1, clas_preds2, clas_preds3], axis = 1)
+        print('clas', clas_logits, clas_preds)
+        sys.stdout.flush()
+        return clas_logits, clas_preds
+
     def _build_model(self, inputs, vocab, gamma, lambda_g):
         """Builds the model.
         """
@@ -57,8 +87,12 @@ class CtrlGenModel(object):
         label_connector = MLPTransformConnector(self._hparams.dim_c)
 
         # Gets the sentence representation: h = (c, z)
-        labels = tf.to_float(tf.reshape(inputs['labels'], [-1, 1]))
-        print('labels', labels, inputs['labels'])
+        labels0 = tf.to_float(tf.reshape(inputs['labels0'], [-1, 1]))
+        labels1 = tf.to_float(tf.reshape(inputs['labels1'], [-1, 1]))
+        labels2 = tf.to_float(tf.reshape(inputs['labels2'], [-1, 1]))
+        labels3 = tf.to_float(tf.reshape(inputs['labels3'], [-1, 1]))
+        labels = tf.concat([labels0, labels1, labels2, labels3], axis = 1)
+        print('labels', labels)
         sys.stdout.flush()
         c = label_connector(labels)
         c_ = label_connector(1 - labels)
@@ -89,7 +123,7 @@ class CtrlGenModel(object):
             sum_over_timesteps=False)
 
         # Gumbel-softmax decoding, used in training
-        start_tokens = tf.ones_like(inputs['labels']) * vocab.bos_token_id
+        start_tokens = tf.ones_like(inputs['labels0']) * vocab.bos_token_id
         end_token = vocab.eos_token_id
         gumbel_helper = GumbelSoftmaxEmbeddingHelper(
             embedder.embedding, start_tokens, end_token, gamma)
@@ -97,44 +131,42 @@ class CtrlGenModel(object):
         soft_outputs_, _, soft_length_, = decoder(
             helper=gumbel_helper, initial_state=connector(h_))
 
+        print(g_outputs, soft_outputs_)
+
         # Greedy decoding, used in eval
         outputs_, _, length_ = decoder(
             decoding_strategy='infer_greedy', initial_state=connector(h_),
             embedding=embedder, start_tokens=start_tokens, end_token=end_token)
-
         # Creates classifier
         classifier = Conv1DClassifier(hparams=self._hparams.classifier)
         clas_embedder = WordEmbedder(vocab_size=vocab.size,
                                      hparams=self._hparams.embedder)
 
-        # Classification loss for the classifier
-        clas_logits, clas_preds = classifier(
-            inputs=clas_embedder(ids=inputs['text_ids'][:, 1:]),
-            sequence_length=inputs['length']-1)
-        print('clas', clas_logits, clas_preds)
-        sys.stdout.flush()
+        clas_logits, clas_preds = self._high_level_classifier(classifier, clas_embedder, inputs, vocab, gamma, lambda_g, inputs['text_ids'][:, 1:], None, inputs['length']-1)
         loss_d_clas = tf.nn.sigmoid_cross_entropy_with_logits(
-            labels=tf.to_float(inputs['labels']), logits=clas_logits)
+            labels=tf.to_float(labels), logits=clas_logits)
         loss_d_clas = tf.reduce_mean(loss_d_clas)
-        accu_d = tx.evals.accuracy(labels=inputs['labels'], preds=clas_preds)
+        accu_d = tx.evals.accuracy(labels, preds=clas_preds)
 
         # Classification loss for the generator, based on soft samples
-        soft_logits, soft_preds = classifier(
-            inputs=clas_embedder(soft_ids=soft_outputs_.sample_id),
-            sequence_length=soft_length_)
+        # soft_logits, soft_preds = classifier(
+        #     inputs=clas_embedder(soft_ids=soft_outputs_.sample_id),
+        #     sequence_length=soft_length_)
+        soft_logits, soft_preds = self._high_level_classifier(classifier, clas_embedder, inputs, vocab, gamma, lambda_g, None, soft_outputs_.sample_id, soft_length_)
         loss_g_clas = tf.nn.sigmoid_cross_entropy_with_logits(
-            labels=tf.to_float(1-inputs['labels']), logits=soft_logits)
+            labels=tf.to_float(1-labels), logits=soft_logits)
         loss_g_clas = tf.reduce_mean(loss_g_clas)
 
         # Accuracy on soft samples, for training progress monitoring
-        accu_g = tx.evals.accuracy(labels=1-inputs['labels'], preds=soft_preds)
+        accu_g = tx.evals.accuracy(labels=1-labels, preds=soft_preds)
 
         # Accuracy on greedy-decoded samples, for training progress monitoring
-        _, gdy_preds = classifier(
-            inputs=clas_embedder(ids=outputs_.sample_id),
-            sequence_length=length_)
+        # _, gdy_preds = classifier(
+        #     inputs=clas_embedder(ids=outputs_.sample_id),
+        #     sequence_length=length_)
+        _, gdy_preds = self._high_level_classifier(classifier, clas_embedder, inputs, vocab, gamma, lambda_g, outputs_.sample_id, None, length_)
         accu_g_gdy = tx.evals.accuracy(
-            labels=1-inputs['labels'], preds=gdy_preds)
+            labels=1-labels, preds=gdy_preds)
 
         # Aggregates losses
         loss_g = loss_g_ae + lambda_g * loss_g_clas
