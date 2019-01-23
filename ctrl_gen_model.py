@@ -153,6 +153,7 @@ class CtrlGenModel(object):
         #     inputs=clas_embedder(soft_ids=soft_outputs_.sample_id),
         #     sequence_length=soft_length_)
         soft_logits, soft_preds = self._high_level_classifier(classifier, clas_embedder, inputs, vocab, gamma, lambda_g, None, soft_outputs_.sample_id, soft_length_)
+        print(soft_logits.shape, soft_preds.shape)
         loss_g_clas = tf.nn.sigmoid_cross_entropy_with_logits(
             labels=tf.to_float(1-labels), logits=soft_logits)
         loss_g_clas = tf.reduce_mean(loss_g_clas)
@@ -165,6 +166,7 @@ class CtrlGenModel(object):
         #     inputs=clas_embedder(ids=outputs_.sample_id),
         #     sequence_length=length_)
         _, gdy_preds = self._high_level_classifier(classifier, clas_embedder, inputs, vocab, gamma, lambda_g, outputs_.sample_id, None, length_)
+        print(gdy_preds.shape)
         accu_g_gdy = tx.evals.accuracy(
             labels=1-labels, preds=gdy_preds)
 
@@ -185,6 +187,10 @@ class CtrlGenModel(object):
             loss_d, d_vars, hparams=self._hparams.opt)
 
         # Interface tensors
+        self.predictions = {
+            "pred_clas": clas_preds,
+            "ground_truth": labels
+        }
         self.losses = {
             "loss_g": loss_g,
             "loss_g_ae": loss_g_ae,
@@ -221,5 +227,6 @@ class CtrlGenModel(object):
         fetches_eval.update(self.losses)
         fetches_eval.update(self.metrics)
         fetches_eval.update(self.samples)
+        fetches_eval.update(self.predictions)
         self.fetches_eval = fetches_eval
 

@@ -94,6 +94,8 @@ def _main(_):
 
                 # Writes samples
                 refs = refs.squeeze().reshape((-1))
+
+                print('predictions', vals.predictions)
                 tx.utils.write_paired_text(
                     refs, hyps,
                     os.path.join(config.sample_path, 'val.%d'%epoch),
