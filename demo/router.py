@@ -5,17 +5,21 @@ import os
 import random
 import math
 import json
-from predict import getToken
+from predict import getToken, getClass
 
 @app.route('/api/predict', methods=['POST'])
 def captcha():
+    print('reuest')
+
+    print(request.data)
     current_app.lock.acquire()
     result = {}
     try:
         print(json.loads((request.data).decode('utf-8')))
         d = json.loads((request.data).decode('utf-8'))
         # Just for demo
-        res = getToken(d['text'], d['character'])
+        res = getClass(d['text'])
+        res = res + getToken(d['text'], d['label0'], d['label1'])
         result = {'info': 'success', 'res': res}  
     except Exception as e:
         print('ERROR:', e)
