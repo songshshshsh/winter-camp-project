@@ -121,6 +121,8 @@ def _main(_):
                 vals = sess.run(model.fetches_eval, feed_dict=feed_dict)
 
                 batch_size = vals.pop('batch_size')
+                predictions = vals.pop('predictions')
+                ground_truth = vals.pop('ground_truth')
 
                 # Computes BLEU
                 samples = tx.utils.dict_pop(vals, list(model.samples.keys()))
