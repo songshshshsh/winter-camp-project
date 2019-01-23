@@ -42,16 +42,17 @@ class CtrlGenModel(object):
     def _high_level_classifier(self, classifier, clas_embedder, inputs, vocab, gamma, lambda_g, classifier_id, classifier_soft_id, classifier_seq_len):
         # Classification loss for the classifier
         print('classifier', classifier_id, classifier_soft_id)
-        clas_logits0, clas_preds0 = classifier(
+        classifier0, classifier1, classifier2, classifier3 = classifier
+        clas_logits0, clas_preds0 = classifier0(
             inputs=clas_embedder(ids=classifier_id, soft_ids=classifier_soft_id),
             sequence_length=classifier_seq_len)
-        clas_logits1, clas_preds1 = classifier(
+        clas_logits1, clas_preds1 = classifier1(
             inputs=clas_embedder(ids=classifier_id, soft_ids=classifier_soft_id),
             sequence_length=classifier_seq_len)
-        clas_logits2, clas_preds2 = classifier(
+        clas_logits2, clas_preds2 = classifier2(
             inputs=clas_embedder(ids=classifier_id, soft_ids=classifier_soft_id),
             sequence_length=classifier_seq_len)
-        clas_logits3, clas_preds3 = classifier(
+        clas_logits3, clas_preds3 = classifier3(
             inputs=clas_embedder(ids=classifier_id, soft_ids=classifier_soft_id),
             sequence_length=classifier_seq_len)
         clas_logits0 = tf.reshape(clas_logits0, (-1, 1))
@@ -138,11 +139,15 @@ class CtrlGenModel(object):
             decoding_strategy='infer_greedy', initial_state=connector(h_),
             embedding=embedder, start_tokens=start_tokens, end_token=end_token)
         # Creates classifier
-        classifier = Conv1DClassifier(hparams=self._hparams.classifier)
+        classifier0 = Conv1DClassifier(hparams=self._hparams.classifier)
+        classifier1 = Conv1DClassifier(hparams=self._hparams.classifier)
+        classifier2 = Conv1DClassifier(hparams=self._hparams.classifier)
+        classifier3 = Conv1DClassifier(hparams=self._hparams.classifier)
         clas_embedder = WordEmbedder(vocab_size=vocab.size,
                                      hparams=self._hparams.embedder)
 
-        clas_logits, clas_preds = self._high_level_classifier(classifier, clas_embedder, inputs, vocab, gamma, lambda_g, inputs['text_ids'][:, 1:], None, inputs['length']-1)
+        clas_logits, clas_preds = self._high_level_classifier([classifier0, classifier1, classifier2, classifier3],
+            clas_embedder, inputs, vocab, gamma, lambda_g, inputs['text_ids'][:, 1:], None, inputs['length']-1)
         loss_d_clas = tf.nn.sigmoid_cross_entropy_with_logits(
             labels=tf.to_float(labels), logits=clas_logits)
         loss_d_clas = tf.reduce_mean(loss_d_clas)
@@ -152,7 +157,8 @@ class CtrlGenModel(object):
         # soft_logits, soft_preds = classifier(
         #     inputs=clas_embedder(soft_ids=soft_outputs_.sample_id),
         #     sequence_length=soft_length_)
-        soft_logits, soft_preds = self._high_level_classifier(classifier, clas_embedder, inputs, vocab, gamma, lambda_g, None, soft_outputs_.sample_id, soft_length_)
+        soft_logits, soft_preds = self._high_level_classifier([classifier0, classifier1, classifier2, classifier3],
+            clas_embedder, inputs, vocab, gamma, lambda_g, None, soft_outputs_.sample_id, soft_length_)
         print(soft_logits.shape, soft_preds.shape)
         loss_g_clas = tf.nn.sigmoid_cross_entropy_with_logits(
             labels=tf.to_float(1-labels), logits=soft_logits)
@@ -165,7 +171,8 @@ class CtrlGenModel(object):
         # _, gdy_preds = classifier(
         #     inputs=clas_embedder(ids=outputs_.sample_id),
         #     sequence_length=length_)
-        _, gdy_preds = self._high_level_classifier(classifier, clas_embedder, inputs, vocab, gamma, lambda_g, outputs_.sample_id, None, length_)
+        _, gdy_preds = self._high_level_classifier([classifier0, classifier1, classifier2, classifier3],
+            clas_embedder, inputs, vocab, gamma, lambda_g, outputs_.sample_id, None, length_)
         print(gdy_preds.shape)
         accu_g_gdy = tx.evals.accuracy(
             labels=1-labels, preds=gdy_preds)
@@ -177,7 +184,7 @@ class CtrlGenModel(object):
         # Creates optimizers
         g_vars = collect_trainable_variables(
             [embedder, encoder, label_connector, connector, decoder])
-        d_vars = collect_trainable_variables([clas_embedder, classifier])
+        d_vars = collect_trainable_variables([clas_embedder, classifier0, classifier1, classifier2, classifier3])
 
         train_op_g = get_train_op(
             loss_g, g_vars, hparams=self._hparams.opt)
