@@ -1,0 +1,6 @@
+Flask
+gevent
+greenlet
+gunicorn
+Pillow
+tensorflow-gpu
