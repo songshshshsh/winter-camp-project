@@ -16,7 +16,7 @@ display_eval = 1e10 # Display the dev results every N training steps (set to a
                     # very large value to disable it).
 sample_path = './samples'
 checkpoint_path = './checkpoints'
-restore = '/Users/songshihong/Desktop/google/winter-camp-project/checkpoints'   # Model snapshot to restore from
+restore = './checkpoints_total'   # Model snapshot to restore from
 result_path = './result'
 
 lambda_g = 0.1    # Weight of the classification loss

@@ -93,8 +93,9 @@ def _main(_):
                 avg_meters.add(vals, weight=batch_size)
 
                 # Writes samples
+                refs = refs.squeeze().reshape((-1))
                 tx.utils.write_paired_text(
-                    refs.squeeze(), hyps,
+                    refs, hyps,
                     os.path.join(config.sample_path, 'val.%d'%epoch),
                     append=True, mode='v')
 
@@ -127,7 +128,7 @@ def _main(_):
         gamma_ = max(0.001, gamma_ * config.gamma_decay)
         lambda_g_ = config.lambda_g
         iterator.restart_dataset(sess, 'test')
-        _eval_epoch(sess, gamma_, lambda_g_, epoch, 'test')
+        _eval_epoch(sess, gamma_, lambda_g_, 1, 'test')
 
 if __name__ == '__main__':
     tf.app.run(main=_main)
