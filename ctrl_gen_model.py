@@ -184,7 +184,7 @@ class CtrlGenModel(object):
         # Creates optimizers
         g_vars = collect_trainable_variables(
             [embedder, encoder, label_connector, connector, decoder])
-        d_vars = collect_trainable_variables([clas_embedder, classifier])
+        d_vars = collect_trainable_variables([clas_embedder, classifier0, classifier1, classifier2, classifier3])
 
         train_op_g = get_train_op(
             loss_g, g_vars, hparams=self._hparams.opt)

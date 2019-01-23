@@ -9,7 +9,8 @@ def hash_label(label):
 
 def process_posts(posts, words, stop):
 	ban_lists = ['www', 'http', 'jpg', 'gif']
-	replace_set = ['.', ',', '?', '!', '\\', '/', '*', '\'', '(', ')', ':', '[', ']', ';']
+	symbol_set = ['.', ',', '?', '!', ':',]
+	replace_set = ['\\', '/', '*', '(', ')', '[', ']', ';']
 	post_array = []
 	for post in posts.split('|||'):
 		has_ban = False
@@ -21,8 +22,12 @@ def process_posts(posts, words, stop):
 			continue
 		for replace_word in replace_set:
 			post = post.replace(replace_word, '')
+		for symbol in symbol_set:
+			post = post.replace(symbol, ' ' + symbol + ' ')
 		current_post = []
 		for word in post.lower().split():
+			if len(word) == 0:
+				continue
 			# if word not in stop:
 			current_post.append(word)
 			if word not in words:
