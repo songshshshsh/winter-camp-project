@@ -188,7 +188,7 @@ class CtrlGenModel(object):
 
         # Interface tensors
         self.predictions = {
-            "pred_clas": clas_preds,
+            "predictions": clas_preds,
             "ground_truth": labels
         }
         self.losses = {
