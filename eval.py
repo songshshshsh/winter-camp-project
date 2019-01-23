@@ -79,8 +79,10 @@ def _main(_):
                 vals = sess.run(model.fetches_eval, feed_dict=feed_dict)
 
                 batch_size = vals.pop('batch_size')
+                predictions = vals.pop('predictions')
+                ground_truth = vals.pop('ground_truth')
 
-                # Computes BLEU
+                # Compute  BLEU
                 samples = tx.utils.dict_pop(vals, list(model.samples.keys()))
                 hyps = tx.utils.map_ids_to_strs(samples['transferred'], vocab)
 
@@ -94,8 +96,7 @@ def _main(_):
 
                 # Writes samples
                 refs = refs.squeeze().reshape((-1))
-
-                print('predictions', vals.predictions)
+                print('predictions', predictions, ground_truth)
                 tx.utils.write_paired_text(
                     refs, hyps,
                     os.path.join(config.sample_path, 'val.%d'%epoch),
