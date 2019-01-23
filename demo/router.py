@@ -9,9 +9,24 @@ from predict import getToken, getClass
 
 @app.route('/api/predict', methods=['POST'])
 def captcha():
-    print('reuest')
+    current_app.lock.acquire()
+    result = {}
+    try:
+        print(json.loads((request.data).decode('utf-8')))
+        d = json.loads((request.data).decode('utf-8'))
+        # Just for demo
+        res = getToken(d['text'], d['label0'], d['label1'])
+        result = {'info': 'success', 'res': res}  
+    except Exception as e:
+        print('ERROR:', e)
+        return jsonify(result)
+    finally:
+        current_app.lock.release()
+        return jsonify(result)
 
-    print(request.data)
+
+@app.route('/api/classification', methods=['POST'])
+def captcha():
     current_app.lock.acquire()
     result = {}
     try:
@@ -19,8 +34,7 @@ def captcha():
         d = json.loads((request.data).decode('utf-8'))
         # Just for demo
         res = getClass(d['text'])
-        res = res + getToken(d['text'], d['label0'], d['label1'])
-        result = {'info': 'success', 'res': res}  
+        result = {'info': 'success', 'label': label}  
     except Exception as e:
         print('ERROR:', e)
         return jsonify(result)
