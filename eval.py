@@ -38,7 +38,7 @@ import numpy as np
 import tensorflow as tf
 import texar as tx
 
-from ctrl_gen_model import CtrlGenModel
+from ctrl_gen_model_for_val import CtrlGenModelVal
 
 flags = tf.flags
 
@@ -51,6 +51,7 @@ config = importlib.import_module(FLAGS.config)
 def _main(_):
     # Data
     test_data = tx.data.MultiAlignedData(config.test_data)
+    code = np.array([1, 0, 1, 0])
     vocab = test_data.vocab(0)
 
     # Each training batch is used twice: once for updating the generator and
@@ -62,7 +63,7 @@ def _main(_):
     # Model
     gamma = tf.placeholder(dtype=tf.float32, shape=[], name='gamma')
     lambda_g = tf.placeholder(dtype=tf.float32, shape=[], name='lambda_g')
-    model = CtrlGenModel(batch, vocab, gamma, lambda_g, config.model)
+    model = CtrlGenModelVal(batch, vocab, gamma, lambda_g, code, config.model)
 
     def _eval_epoch(sess, gamma_, lambda_g_, epoch, val_or_test='val'):
         avg_meters = tx.utils.AverageRecorder()
@@ -134,4 +135,5 @@ def _main(_):
         _eval_epoch(sess, gamma_, lambda_g_, 1, 'test')
 
 if __name__ == '__main__':
-    tf.app.run(main=_main)
+    #tf.app.run(main=_main)
+    _main(None)
