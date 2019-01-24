@@ -5,7 +5,7 @@ import os
 import random
 import math
 import json
-from predict import getClass
+from mbti_trans import getClass
 from mbti_trans import mbti_trans as getToken
 
 @app.route('/api/predict', methods=['GET'])
@@ -17,9 +17,9 @@ def captcha():
         text = requests['text']
         label0 = requests['label0']
         label1 = requests['label1']
-        print(text, label0, label1)
+        print(text[0], label0[0], label1[0])
         # Just for demo
-        res = getToken(text, label0, label1)
+        res = getToken(text[0], label0[0], label1[0])
         result = {'info': 'success', 'res': res}  
     except Exception as e:
         print('ERROR:', e)

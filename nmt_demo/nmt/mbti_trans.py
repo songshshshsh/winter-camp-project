@@ -16,6 +16,9 @@ def mbti_trans(text, label_from, label_to):
 
     return ans.rstrip('\n')
 
+def getClass(text):
+    return 'INFP'
+
 
 if __name__ == "__main__":
     text = input("start: \n")
