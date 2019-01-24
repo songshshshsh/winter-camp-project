@@ -135,4 +135,5 @@ def _main(_):
         _eval_epoch(sess, gamma_, lambda_g_, 1, 'test')
 
 if __name__ == '__main__':
-    tf.app.run(main=_main)
+    #tf.app.run(main=_main)
+    _main(None)
