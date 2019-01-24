@@ -76,7 +76,7 @@ def solve(from_type, to_type, tfidf, labels):
     data_size = len(labels)
     for i in range(data_size):
         label = labels[i].rstrip('\n')
-        if len(tfidf.tf_idf[i]) > 20:
+        if len(tfidf.tf_idf[i]) > 15:
             continue
         if label == from_type:
             from_index.append(i)
